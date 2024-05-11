@@ -42,7 +42,18 @@ document.addEventListener('DOMContentLoaded', function() {
     marker.on('dragend', function() {
         var position = marker.getLatLng();
         marker.setLatLng(new L.LatLng(position.lat, position.lng), {draggable:'true'});
-        map.panTo(new L.LatLng(position.lat, position.lng))
+        map.panTo(new L.LatLng(position.lat, position.lng));
+
+        // Realizar solicitud de geocodificación inversa
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.lat}&lon=${position.lng}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);  // Ver la respuesta para entender la estructura y extraer información
+                if (data.address) {
+                    document.getElementById('locationName').value = data.address.road || 'Calle no encontrada';
+                    document.getElementById('locationDescription').value = `Cerca de ${data.address.suburb}, ${data.address.city}`;
+                }
+            });
     });
 
     document.getElementById('saveLocation').addEventListener('click', function(e) {
