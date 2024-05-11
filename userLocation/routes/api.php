@@ -23,6 +23,10 @@ Route::group([
 
 });
 
+// Location
+Route::post('/location/update', [LocationController::class, 'update']);
+
+
 /*Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');*/
