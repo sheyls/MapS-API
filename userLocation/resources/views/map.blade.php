@@ -57,11 +57,40 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('saveLocation').addEventListener('click', function(e) {
-        e.preventDefault();
-        var position = marker.getLatLng();
-        console.log(`Location saved: Latitude ${position.lat}, Longitude ${position.lng}`);
-        // Aquí puedes añadir código para enviar esta ubicación al servidor
+    e.preventDefault();
+    const position = marker.getLatLng();
+    const name = document.getElementById('locationName').value.trim(); // Obtener el valor y eliminar espacios en blanco
+    const description = document.getElementById('locationDescription').value.trim(); // Obtener el valor y eliminar espacios en blanco
+
+    fetch('/map/location', { 
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Token CSRF para seguridad
+        },
+        body: JSON.stringify({
+            latitude: position.lat,
+            longitude: position.lng,
+            name: name,
+            description: description
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        alert('Ubicación guardada correctamente');
+        console.log(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al guardar la ubicación: ' + error.message);
     });
+});
+
 });
 </script>
 @endsection
