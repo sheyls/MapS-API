@@ -33,7 +33,7 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    let map, marker;  // Declare both map and marker at a higher scope
+    let map, marker; 
 
     function initMap(latitude, longitude) {
         map = L.map('map').setView([latitude, longitude], 13);

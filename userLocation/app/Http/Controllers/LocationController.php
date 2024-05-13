@@ -6,7 +6,6 @@ use App\Models\Location;
 
 class LocationController extends Controller
 {
-   // Example of a basic store method in LocationController
 public function store(Request $request)
 {
     try {
@@ -26,6 +25,5 @@ public function store(Request $request)
         return response()->json(['error' => 'Server error'], 500);
     }
 }
-
     
 }
