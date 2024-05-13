@@ -50,5 +50,8 @@ The user table was seeded with Laravel's automatic seeder and created:
 - User: test@example.com
 - Password: password
 
+## Postman testing
+The repo contains a Postman collection for testing the API login endpoint.
+
 
 
