@@ -33,64 +33,102 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const map = L.map('map').setView([51.505, -0.09], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+    let map, marker;  // Declare both map and marker at a higher scope
 
-    const marker = L.marker([51.505, -0.09], {draggable: true}).addTo(map);
-    marker.on('dragend', function() {
-        var position = marker.getLatLng();
-        marker.setLatLng(new L.LatLng(position.lat, position.lng), {draggable:'true'});
+    function initMap(latitude, longitude) {
+        map = L.map('map').setView([latitude, longitude], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        marker = L.marker([latitude, longitude], {draggable: true}).addTo(map);
+        marker.on('dragend', updateMarker);
+    }
+
+    function updateMarker() {
+        const position = marker.getLatLng();
         map.panTo(new L.LatLng(position.lat, position.lng));
+        reverseGeocode(position.lat, position.lng);
+    }
 
-        // Realizar solicitud de geocodificación inversa
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.lat}&lon=${position.lng}`)
+    function reverseGeocode(lat, lng) {
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
             .then(response => response.json())
             .then(data => {
-                console.log(data);  // Ver la respuesta para entender la estructura y extraer información
                 if (data.address) {
-                    document.getElementById('locationName').value = data.address.road || 'Calle no encontrada';
-                    document.getElementById('locationDescription').value = `Cerca de ${data.address.suburb}, ${data.address.city}`;
+                    document.getElementById('locationName').value = data.address.road || 'Street not found';
+                    document.getElementById('locationDescription').value = `Near ${data.address.suburb}, ${data.address.city}`;
                 }
             });
-    });
+    }
+
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition, showError);
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
+    }
+
+    function showPosition(position) {
+        initMap(position.coords.latitude, position.coords.longitude);
+    }
+
+    function showError(error) {
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                alert("User denied the request for Geolocation.");
+                break;
+            case error.POSITION_UNAVAILABLE:
+                alert("Location information is unavailable.");
+                break;
+            case error.TIMEOUT:
+                alert("The request to get user location timed out.");
+                break;
+            case error.UNKNOWN_ERROR:
+                alert("An unknown error occurred.");
+                break;
+        }
+        initMap(51.505, -0.09); // Default coordinates if error occurs
+    }
+
+    getLocation(); // Get the current location and initialize the map
 
     document.getElementById('saveLocation').addEventListener('click', function(e) {
-    e.preventDefault();
-    const position = marker.getLatLng();
-    const name = document.getElementById('locationName').value.trim(); // Obtener el valor y eliminar espacios en blanco
-    const description = document.getElementById('locationDescription').value.trim(); // Obtener el valor y eliminar espacios en blanco
+        e.preventDefault();
+        const position = marker.getLatLng(); // Accessible because marker is now scoped outside initMap
+        const name = document.getElementById('locationName').value.trim();
+        const description = document.getElementById('locationDescription').value.trim();
 
-    fetch('/map/location', { 
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Token CSRF para seguridad
-        },
-        body: JSON.stringify({
-            latitude: position.lat,
-            longitude: position.lng,
-            name: name,
-            description: description
+        fetch('/map/location', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                latitude: position.lat,
+                longitude: position.lng,
+                name: name,
+                description: description
+            })
         })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(data => {
-        alert('Ubicación guardada correctamente');
-        console.log(data);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error al guardar la ubicación: ' + error.message);
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            alert('Ubicación guardada correctamente');
+            console.log(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al guardar la ubicación: ' + error.message);
+        });
     });
 });
 
-});
 </script>
 @endsection

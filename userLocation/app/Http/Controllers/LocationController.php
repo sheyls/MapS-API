@@ -15,6 +15,9 @@ public function store(Request $request)
         $location->longitude = $request->longitude;
         $location->name = $request->name;
         $location->description = $request->description;
+        $location->region = $request->region;
+        $location->comuna = $request->comuna;
+        //$location->address = $request->address;
         $location->save();
 
         return response()->json(['message' => 'Location saved successfully'], 200);
