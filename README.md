@@ -46,3 +46,9 @@ The Laravel API for the MapS project provides backend services for user authenti
 ## Authentication
 This API uses Laravel Sanctum for handling authentication. Ensure your requests include a valid bearer token to interact with protected routes.
 
+The user table was seeded with Laravel's automatic seeder and created: 
+- User: test@example.com
+- Password: password
+
+
+
